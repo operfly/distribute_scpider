@@ -27,3 +27,10 @@ def upload_page_list():
         print r.get(b)
     return 0
 print upload_page_list()
+
+def download():
+    redis_download_url = r.keys("*")
+    for a in redis_download_url:
+        redis_download_url_temp = r.get(str(a))
+        print redis_download_url_temp
+print download()
