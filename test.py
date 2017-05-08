@@ -1,16 +1,12 @@
-# -*- coding: utf-8 -*-
-#  import math
-import requests
-import redis
-import re
-#from bs4 import BeautifulSoup
+from datetime import datetime 
+from elasticsearch import Elasticsearch
 
-r = redis.StrictRedis(host='192.168.1.135',port=6379,db=0)
-def download():
-    redis_download_url = r.keys("*")
-    for a in redis_download_url:
-        redis_download_url_temp = r.get(a)
-        c = requests.get(redis_download_url_temp)
-        b = c.decode('utf-8','ignore')
-        print (b)
-print(download())
+es = Elasticsearch("192.168.1.157:9200")
+
+data = {
+    "timestamp" : datetime.now().strftime( "%Y-%m-%dT%H:%M:%S.000+0800" ),
+    "http_code" :"404",
+    "count" :"10"
+}
+
+es.index( index="http_code", doc_type="error_code", body=data )

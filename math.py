@@ -7,8 +7,11 @@ import re
 from pymongo import MongoClient
 import elasticsearch
 #from bs4 import BeautifulSoup
+from datetime import datetime
+from elasticsearch import Elasticsearch
 
 r = redis.StrictRedis(host='192.168.1.135',port=6379,db=0)
+es = Elasticsearch("192.168.1.157:9200")
 
 def download():
     try:
