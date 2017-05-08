@@ -1,3 +1,4 @@
+# -*- codeing: utf-8 -*-
 import time
 import requests
 import re
@@ -8,7 +9,7 @@ import threading
 
 
 headers = {'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36'}
-r = redis.StrictRedis(host='127.0.0.1',port=6379,db=0)
+r = redis.StrictRedis(host='192.168.1.135',port=6379,db=0)
 
 #class Mytheard(threading.Thread):
 #    """docstring for Mytheard"""
