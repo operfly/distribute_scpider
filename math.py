@@ -21,12 +21,15 @@ def download():
             c = requests.get(redis_download_url_temp)
             re_car_name = re.compile('<title>(.*)</title>',re.S)
             car_name = re.findall(re_car_name, c.text)
-    
-            re_car_money = re.compile(u'<p class="price detail-title-right-tagP">￥(.*)万</p>')
+
+            re_car_money = re.compile(u'<span class="dialog-price">(.*)万</span>  &nbsp;建议价')
             car_money = re.findall(re_car_money, c.text)
-            #print (c.url)
-            print(car_name)
-            print(car_money)
+            data = {
+                "timestamp": datetime.now().strftime("%Y-%m-%dT%H:%M:%S.000+0800"),
+                "car_name": car_name,
+                "car_money": car_money
+            }
+            es.index(index="car_name", doc_type="car_name", body=data)
     except Exception as e:
         return -1    
 print (download())
