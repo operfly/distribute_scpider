@@ -1,29 +1,22 @@
 # -*- codeing: utf-8 -*-
-import requests
-from requests.exceptions import HTTPError, ConnectionError
-#from bs4 import BeautifulSoup, NavigableString
-import queue
-import threading
+
 import time
 import requests
 import re
 import redis
-#import Queue
-import threading,multiprocessing
+import queue
+import threading
 from datetime import datetime
 from elasticsearch import Elasticsearch
-from time import ctime,sleep
 
-#headers = {'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36'}
+
+headers = {'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36'}
 r = redis.StrictRedis(host='192.168.1.135',port=6379,db=0)
 es = Elasticsearch("192.168.1.157:9200")
 
 class AyouBlog():
     def __init__(self):
-        self.headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:48.0) Gecko/20100101 Firefox/48.0",
-        }
-        self.s = requests.session()
+        threading.Thread.__init__(self)
 
 #    def get_page_url(self):
 #        urls_set = set()
@@ -62,11 +55,8 @@ class AyouBlog():
 class ThreadUrl(threading.Thread):
     def __init__(self, queue):
         threading.Thread.__init__(self)
-        self.queue = queue
         self.s = requests.session()
-        self.headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:48.0) Gecko/20100101 Firefox/48.0",
-        }
+
 
 #    def run(self):
 #        while not self.queue.empty():
@@ -99,7 +89,7 @@ class ThreadUrl(threading.Thread):
                 re_car_name = re.compile('<title>(.*)</title>', re.S)
                 car_name = re.findall(re_car_name, c.text)
 
-                re_car_money = re.compile(u'<span class="dialog-price">(.*)Íò</span>  &nbsp;½¨Òé¼Û')
+                re_car_money = re.compile(u'<span class="dialog-price">(.*)ä¸‡</span>  &nbsp;å»ºè®®ä»·')
                 car_money = re.findall(re_car_money, c.text)
                 data = {
                     "timestamp": datetime.now().strftime("%Y-%m-%dT%H:%M:%S.000+0800"),
@@ -111,20 +101,19 @@ class ThreadUrl(threading.Thread):
             return -1
 
 def main():
-    queue = queue.queue()
-
+    que = queue.Queue()
     p = AyouBlog()
-    for url in p.upload_page_list():
-        print(url)
-        queue.put(url)
+    for a in  p.upload_page_list():
+        print (a)
+        que.put(a)
+
 
     for i in range(7):
-        t = ThreadUrl(queue)
+        t = ThreadUrl(que)
         t.setDaemon(True)
         t.start()
 
-    queue.join()
-
+    que.join()
 
 if __name__ == "__main__":
     start = time.time()
