@@ -10,9 +10,9 @@ from datetime import datetime
 from elasticsearch import Elasticsearch
 from multiprocessing import Process, JoinableQueue
 headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36'
+    'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:50.0) Gecko/20100101 Firefox/50.0'
     }
-r = redis.StrictRedis(host='192.168.1.135', port=6379, db=0)
+r = redis.StrictRedis(host='192.168.1.157', port=6379, db=0)
 es = Elasticsearch("192.168.1.157:9200")
 
 
@@ -116,18 +116,51 @@ class ThreadUrl(threading.Thread):
 
 
 
-if __name__ == "__main__":
-    que = queue.Queue()
-    p = AyouBlog()
-    p.upload_page_list()
-    s = ThreadUrl
+#if __name__ == "__main__":
+#    que = queue.Queue()
+#    print ("Scpite is runing: %s" % time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+#    p = AyouBlog()
+#    p.upload_page_list()
+#    print ("Download is runing %s" % time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+#    s = ThreadUrl
+#
+#    for i in range(7):
+#        t = s.download(que)
+#        t.setDaemon(True)
+#        t.start()
+#
+#    que.join()
+#    start = time.time()
+#
+#    print("Elapsed Time: %s" % (time.time() - start))
 
-    for i in range(7):
-        t = s.download(que)
-        t.setDaemon(True)
-        t.start()
-
-    que.join()
-    start = time.time()
-
-    print("Elapsed Time: %s" % (time.time() - start))
+def main():    #进程列表  
+    worker_list = list()  
+  
+    #创建队列  
+    queue = JoinableQueue()  
+  
+    #将URL放进队列  
+    p = AyouBlog()  
+    for url in p.upload_page_list():  
+        print(str(url))
+        queue.put(str(url)) 
+  
+    #开多进程  
+    for i in range(3):  
+        t = ThreadUrl(queue)  
+        worker_list.append(t)  
+        t.start()  
+  
+    #队列清空后再执行其它  
+    queue.join()  
+   
+     #进程关闭(这个是不是多余啊?)  
+    for w in worker_list:  
+        w.terminate()  
+   
+   
+if __name__=="__main__":  
+    start = time.time()  
+    main()  
+    print("Elapsed Time: %s" % (time.time() - start))  
