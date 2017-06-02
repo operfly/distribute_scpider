@@ -13,7 +13,7 @@ from time import ctime,sleep
 
 
 headers = {'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36'}
-r = redis.StrictRedis(host='192.168.1.135',port=6379,db=0)
+r = redis.StrictRedis(host='192.168.1.157',port=6379,db=0)
 es = Elasticsearch("192.168.1.157:9200")
 
 #class Mytheard(threading.Thread):
@@ -26,7 +26,7 @@ es = Elasticsearch("192.168.1.157:9200")
 
 
 def upload_page_list():
-    for a in range(1,51):
+    for a in range(1,80):
         url = 'https://www.renrenche.com/cq/ershouche/p' + str(a)
         page_url = requests.get(url,headers = headers,timeout = 30)
         recom = re.compile(r'data-car-id="(.*?)"',re.S)
@@ -63,6 +63,14 @@ def download():
 
 if __name__ == '__main__':
     print("RenRencha Is runing  %s" % ctime())
-    upload_page_list()
-    download()
+    for a in range(5):
+        b = threading.Thread(target=upload_page_list(),name ='Thread'+str(a))
+        b.start()
+        print('thread %s is running...' % threading.current_thread().name)
+        b.join()
+    for c in range(5):
+        d = threading.Thread(target=download(),name = 'Thread ' +str(a))
+        d.start()
+        print('thread %s is running...' % threading.current_thread().name)
+        d.join()
     print ("RenRencha Is over  %s" %ctime())
