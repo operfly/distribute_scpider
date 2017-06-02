@@ -56,7 +56,7 @@ class My_download_thread(threading.Thread):
         threading.Thread.__init__(self)
         self.thread_name = name
 
-    def download(self):
+    def run(self):
         global car_number
         while True:
             elem = queue.get()
