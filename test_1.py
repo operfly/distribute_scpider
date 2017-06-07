@@ -58,13 +58,15 @@ class My_download_thread(threading.Thread):
 
     def run(self):
         global car_number
+        redis_download_url = r.keys("*")
+
         while True:
             elem = queue.get()
-            redis_download_url = r.keys("*")
-            if car_number > 0 :
-                car_number = car_number + 1 
+
+            if car_number >= 0 :
+                car_number += 1
                 for a in redis_download_url:
-                    
+                    print("线程%s找到了车辆！已经找到了%d台车辆。" % (self.thread_name, car_number))
                     redis_download_url_temp = r.get(a)
                     c = requests.get(redis_download_url_temp)
                     re_car_name = re.compile('<title>(.*)</title>',re.S)
@@ -78,7 +80,7 @@ class My_download_thread(threading.Thread):
                         "car_money": car_money
                     }
                     es.index(index="car_name", doc_type="car_name", body=data)
-                print("线程%s找到了车辆！已经找到了%d台车辆。" % (self.thread_name, car_number))
+                
         else:    
             pass
         
@@ -89,9 +91,9 @@ def main():
         p = ThreadUrl(i)
         p.start()
 
-    for b in range(5):
-        k = My_download_thread(i)
-        k.start()
+    for b in range(10):
+        s = My_download_thread(b)
+        s.start()
 
 if __name__ == '__main__':
     main()
