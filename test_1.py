@@ -32,7 +32,8 @@ class ThreadUrl(threading.Thread):
     def run(self):
         global ticket,mutex
 
-        while True:
+        while  True:
+            
 
 
             if ticket > 0:
@@ -45,12 +46,46 @@ class ThreadUrl(threading.Thread):
 
                     temp_car_page_url = 'https://www.renrenche.com/cq/car/' + \
                         str(b)
-                    r.set(b, temp_car_page_url)
+                    r.lpush('renrenche', temp_car_page_url)
                 print("线程%s找到了！还有%d页面剩余。" % (self.thread_name, ticket))
-                
-
             else:
                 break
+
+        
+class My_download_thread(threading.Thread):
+    """docstring for download_car"""
+
+    def __init__(self, name):
+        threading.Thread.__init__(self)
+        self.thread_name = name
+
+    def run(self):
+        redis_download_url = r.keys('*')
+        redis_download_url_number = r.dbsize()
+        while True:
+            #redis_download_url_number = r.lrange('renrenche',0 , -1)
+            for a in redis_download_url:
+
+                redis_download_url_number   += 1 
+                print ("线程%s 找到%s台汽车." % (self.thread_name,redis_download_url_number))
+            
+                redis_download_url_temp = r.lpop(a)
+                
+                c = requests.get(redis_download_url_temp)
+                re_car_name = re.compile('<title>(.*)</title>', re.S)
+                car_name = re.findall(re_car_name, c.text)
+                re_car_money = re.compile(
+                    u'<span class="dialog-price">(.*)万</span>  &nbsp;建议价')
+                car_money = re.findall(re_car_money, c.text)
+                data = {
+                    "timestamp": datetime.now().strftime("%Y-%m-%dT%H:%M:%S.000+0800"),
+                    "car_name": car_name,
+                    "car_money": car_money
+                }
+                es.index(index="car_name", doc_type="car_name", body=data)
+            pass
+            #else:
+            #    break 
 
 
 def main():
@@ -59,9 +94,14 @@ def main():
     for i in range(10):
         p = ThreadUrl(i)
         p.start()
-
-
+    
+def runtime():
+    for b in range(10):
+        s = My_download_thread(b)
+        s.start()
 
 
 if __name__ == '__main__':
     main()
+    time.sleep(5)
+    runtime()

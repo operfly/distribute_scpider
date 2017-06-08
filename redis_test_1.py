@@ -26,32 +26,33 @@ class My_download_thread(threading.Thread):
         self.thread_name = name
 
     def run(self):
-        redis_download_url = r.keys("*")
+        redis_download_url = r.keys('*')
         redis_download_url_number = r.dbsize()
         while True:
-
+            #redis_download_url_number = r.lrange('renrenche',0 , -1)
             for a in redis_download_url:
-                if 0 < redis_download_url_number:
-                    redis_download_url_number -= 1
-                    print ("还有%s台汽车."% (redis_download_url_number))
-                
-                    redis_download_url_temp = r.get(a)
-                    c = requests.get(redis_download_url_temp)
-                    re_car_name = re.compile('<title>(.*)</title>', re.S)
-                    car_name = re.findall(re_car_name, c.text)
-                    re_car_money = re.compile(
-                        u'<span class="dialog-price">(.*)万</span>  &nbsp;建议价')
-                    car_money = re.findall(re_car_money, c.text)
-                    data = {
-                        "timestamp": datetime.now().strftime("%Y-%m-%dT%H:%M:%S.000+0800"),
-                        "car_name": car_name,
-                        "car_money": car_money
-                    }
-                    es.index(index="car_name", doc_type="car_name", body=data)
-                    r.delete(a)
+
+                redis_download_url_number   += 1 
+                print ("线程%s 找到%s台汽车." % (self.thread_name,redis_download_url_number))
             
-                else:
-                    break
+                redis_download_url_temp = r.lpop(a)
+                
+                c = requests.get(redis_download_url_temp)
+                re_car_name = re.compile('<title>(.*)</title>', re.S)
+                car_name = re.findall(re_car_name, c.text)
+                re_car_money = re.compile(
+                    u'<span class="dialog-price">(.*)万</span>  &nbsp;建议价')
+                car_money = re.findall(re_car_money, c.text)
+                data = {
+                    "timestamp": datetime.now().strftime("%Y-%m-%dT%H:%M:%S.000+0800"),
+                    "car_name": car_name,
+                    "car_money": car_money
+                }
+                es.index(index="car_name", doc_type="car_name", body=data)
+            else:
+                break 
+            
+                
             
 
 
